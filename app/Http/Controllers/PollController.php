@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use App\Models\Image_file;
 use App\Models\All_Tables;
+use App\Models\HistoryVotes;
 
 class PollController extends Controller
 {
@@ -64,7 +65,7 @@ class PollController extends Controller
     }
 
     public function uploadNewlyAddedPoll(Request $request){
-    	
+    	// return $request;
     	$headline = $request->input('headline');
     	$tableNameStartsWith = time() . '_' . uniqid();
     	
@@ -402,6 +403,103 @@ class PollController extends Controller
 
     }
 
+    public function saveToHistoryTable(Request $request){
+        $table_name_starts_with = $request->input("table_name_starts_with");
+        $winners_votes = $request->input("winners_votes");
+        $winners_name = $request->input("winners_name");
+        $winners_name = trim($winners_name);
+        $winners_array = [];
+
+        if (strpos($winners_name, ',') !== false) {
+            $winners_array = explode(',', $winners_name);
+            $winners_array = array_map('trim', $winners_array);
+        }
+        else{
+            $winners_array = [$winners_name];
+        }
+
+
+        $allVotes = "";
+
+        if (Schema::hasTable($table_name_starts_with.'_polls')){
+            $allVotes = DB::table($table_name_starts_with.'_polls')
+                        ->select("polls", "votes")
+                        ->get();
+        }
+
+        if(Schema::hasTable('history_votes')){
+
+            foreach ($allVotes as $value) {
+                $data = HistoryVotes::where('star_name', $value->polls)
+                    ->first();
+                if($data){
+                    // $data->total_votes_received += (int)$value->votes;
+                    // $data->total_nominations += 1;
+                    // $data->save();
+                    $data->update([
+                        'total_votes_received' => $data->total_votes_received + (int)$value->votes,
+                        'total_nominations' => $data->total_nominations + 1,
+                    ]);
+                }
+                else{
+                    DB::table('history_votes')->insert([
+                        'star_name' => $value->polls,
+                        'total_votes_received' => $value->votes,
+                        'total_nominations' => 1, // You may adjust these values accordingly
+                        'total_won' => 0,         // based on your requirements
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+        }
+        else{
+            Schema::create('history_votes', function (Blueprint $table) {
+                $table->id();
+                $table->string('star_name');
+                $table->bigInteger('total_votes_received');
+                $table->integer('total_nominations');
+                $table->integer('total_won');
+                $table->timestamps();
+            });
+
+            foreach ($allVotes as $value) {
+                $data = HistoryVotes::where('star_name', $value->polls)
+                    ->first();
+                if($data){
+                    // $data->total_votes_received += (int)$value->votes;
+                    // $data->total_nominations += 1;
+                    // $data->save();
+                    $data->update([
+                        'total_votes_received' => $data->total_votes_received + (int)$value->votes,
+                        'total_nominations' => $data->total_nominations + 1,
+                    ]);
+                    
+                }
+                else{
+                    DB::table('history_votes')->insert([
+                        'star_name' => $value->polls,
+                        'total_votes_received' => $value->votes,
+                        'total_nominations' => 1, // You may adjust these values accordingly
+                        'total_won' => 0,         // based on your requirements
+                        'created_at' => now(),
+                        'updated_at' => now()
+                    ]);
+                }
+            }
+        }
+
+        foreach ($winners_array as $value) {
+            DB::table('history_votes')
+                ->where('star_name', $value)
+                ->update([
+                    'total_won' => DB::raw('total_won + 1')
+                ]);
+        }
+
+        return 1;
+    }
+
     public function uploadNewlyWinnerPoll(Request $request){
     	$poll_id_in_all_tables = $request->input("poll_id_in_all_tables");
     	$description_or_afterDetails = $request->input("description_or_afterDetails");
@@ -411,9 +509,16 @@ class PollController extends Controller
     	$winners_name = $request->input("winners_name");
     	$winners_votes = $request->input("winners_votes");
     	$total_votes = $request->input("total_votes");
+        $save_data = $request->input("save_data");
     	$currentDate = date('Y-m-d H:i:s');
 
+        
+
     	if($value_entered == "1a5b10c"){
+            if($save_data == true){
+                $this->saveToHistoryTable($request);
+            }
+
     		if (Schema::hasTable($table_name_starts_with.'_images')){
     			
     		}
@@ -936,5 +1041,89 @@ class PollController extends Controller
         return response()->json([
             'message' => 'Successfully deleted.',
             'success' => true]);
+    }
+
+    public function getListOfHistoryVotes(){
+        $data = HistoryVotes::select("id", "star_name")->get();
+        if($data){
+            return response()->json([
+                'value' => $data,
+                'message' => 'Data received.',
+                'success' => true]);    
+        }
+        else{
+            return response()->json([
+                'value' => '',
+                'message' => 'Data not found.',
+                'success' => false]);
+        }
+        
+    }
+
+    public function getListOfAllPollHistory(){
+        $data = DB::table("history_votes")
+            ->select("star_name", "total_votes_received", "total_nominations", "total_won")
+            ->orderBy("total_votes_received", "DESC")
+            ->get();
+
+        if($data){
+            return response()->json([
+                'value' => $data,
+                'message' => 'Data received.',
+                'success' => true]); 
+        }
+        else{
+            return response()->json([
+                'value' => '',
+                'message' => 'Data not found.',
+                'success' => false]);
+        }
+    }
+
+    public function searchHistoryPollBy(Request $request){
+        $whichColumn = $request->input("whichColumn");
+        $data = null;
+
+        if ($whichColumn) {
+            $query = DB::table("history_votes")
+                ->select("star_name", "total_votes_received", "total_nominations", "total_won");
+
+            if ($whichColumn == "starName" && $request->input("starName") != "") {
+                $query->where("star_name", "LIKE", "%" . $request->input("starName") . "%");
+            } 
+            else if ($whichColumn == "totalVotes" && $request->input("totalVotes") != "") {
+                $query->where("total_votes_received", ">=", $request->input("totalVotes"));
+            } 
+            else if ($whichColumn == "nominated" && $request->input("nominated") != "") {
+                $query->where("total_nominations", ">=", $request->input("nominated"));
+            } 
+            else if ($whichColumn == "wonPoll" && $request->input("wonPoll") != "") {
+                $query->where("total_won", ">=", $request->input("wonPoll"));
+            }
+
+            $data = $query->orderBy("total_votes_received", "DESC")->get();
+
+            if($data->isNotEmpty()) {
+                return response()->json([
+                    'value' => $data,
+                    'message' => 'Data found.',
+                    'success' => true
+                ]);
+            } 
+            else{
+                return response()->json([
+                    'value' => null,
+                    'message' => 'No data found.',
+                    'success' => false
+                ]);
+            }
+        } 
+        else{
+            return response()->json([
+                'value' => null,
+                'message' => 'No data found.',
+                'success' => false
+            ]);
+        }
     }
 }

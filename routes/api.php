@@ -62,6 +62,11 @@ Route::get('/delete-all-junk-files', 'App\Http\Controllers\PollController@delete
 Route::post('/report-a-problem', 'App\Http\Controllers\UserController@reportAProblem');
 
 
-
-
 Route::get('/get-temp-data-from-api', 'App\Http\Controllers\PollController@getTempDataFromApi');
+
+
+Route::get('/get-list-of-history-votes', 'App\Http\Controllers\PollController@getListOfHistoryVotes');
+Route::get('/get-list-of-all-poll-history', 'App\Http\Controllers\PollController@getListOfAllPollHistory');
+
+Route::post('/search-history-poll-by', 'App\Http\Controllers\PollController@searchHistoryPollBy');
+
