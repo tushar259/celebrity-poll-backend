@@ -344,9 +344,13 @@ class PollController extends Controller
     		foreach($allPolls as $value){
     			$pollTags = "";
                 if(Schema::hasTable($value->table_name_starts_with."_polls")){
+            //         $pollTags = DB::table($value->table_name_starts_with."_polls")
+        				// ->select('id','polls','votes',DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+        				// ->get();
                     $pollTags = DB::table($value->table_name_starts_with."_polls")
-        				->select('id','polls','votes',DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
-        				->get();
+                        ->select('id', 'polls', DB::raw('SUM(votes + extra_votes) as votes'), DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+                        ->groupBy('id', 'polls', 'table_name_starts_with')
+                        ->get();
                 }
     			$value->poll_tags = $pollTags;
 
@@ -875,8 +879,12 @@ class PollController extends Controller
             foreach($allPolls as $value){
                 $pollTags = "";
                 if(Schema::hasTable($value->table_name_starts_with."_polls")){
+                    // $pollTags = DB::table($value->table_name_starts_with."_polls")
+                    //     ->select('id','polls','votes',DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+                    //     ->get();
                     $pollTags = DB::table($value->table_name_starts_with."_polls")
-                        ->select('id','polls','votes',DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+                        ->select('id', 'polls', DB::raw('SUM(votes + extra_votes) as votes'), DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+                        ->groupBy('id', 'polls', 'table_name_starts_with')
                         ->get();
                 }
                 $value->poll_tags = $pollTags;
@@ -928,8 +936,12 @@ class PollController extends Controller
             foreach($allPolls as $value){
                 $pollTags = "";
                 if(Schema::hasTable($value->table_name_starts_with."_polls")){
+                    // $pollTags = DB::table($value->table_name_starts_with."_polls")
+                    //     ->select('id','polls','votes',DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+                    //     ->get();
                     $pollTags = DB::table($value->table_name_starts_with."_polls")
-                        ->select('id','polls','votes',DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+                        ->select('id', 'polls', DB::raw('SUM(votes + extra_votes) as votes'), DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+                        ->groupBy('id', 'polls', 'table_name_starts_with')
                         ->get();
                 }
                 $value->poll_tags = $pollTags;
