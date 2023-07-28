@@ -82,7 +82,8 @@ class PollController extends Controller
 		        Schema::create($tableNameStartsWith.'_polls', function (Blueprint $table) {
 		            $table->id();
 		            $table->string('polls');
-		            $table->integer('votes');
+                    $table->integer('votes');
+		            $table->integer('extra_votes');
 		            $table->timestamps();
 		        });
 
@@ -177,7 +178,8 @@ class PollController extends Controller
     	foreach ($tags as $tag) {
     		DB::table($tableNameStartsWith.'_polls')->insert([
 			    'polls' => $tag,
-			    'votes' => 0
+			    'votes' => 0,
+                'extra_votes' => 0
 			]);
     	}
 
@@ -231,13 +233,21 @@ class PollController extends Controller
             $totalVotesGiven = "";
 
             if(Schema::hasTable($tableNameStartsWith["table_name_starts_with"].'_polls')){
+                // $pollsFromTable = DB::table($tableNameStartsWith["table_name_starts_with"].'_polls')
+                //     ->select('id','polls', 'votes', 'extra_votes')
+                //     ->orderBy('polls')
+                //     ->get();
+
                 $pollsFromTable = DB::table($tableNameStartsWith["table_name_starts_with"].'_polls')
-                    ->select('id','polls', 'votes')
+                    ->select('id','polls', DB::raw('votes + extra_votes as votes'))
                     ->orderBy('polls')
                     ->get();
 
-                $totalVotesGiven = DB::table($tableNameStartsWith["table_name_starts_with"].'_polls')
-                    ->sum('votes');
+                // $totalVotesGiven = DB::table($tableNameStartsWith["table_name_starts_with"].'_polls')
+                //     ->sum('votes');
+                    $totalVotesGiven = DB::table($tableNameStartsWith["table_name_starts_with"].'_polls')
+                        ->select(DB::raw('SUM(votes + extra_votes) as total_votes'))
+                        ->value('total_votes');
             }
     		
 
@@ -280,6 +290,10 @@ class PollController extends Controller
                     $pollTags = DB::table($value->table_name_starts_with."_polls")
         				->select('id','polls','votes',DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
         				->get();
+                    // $pollTags = DB::table($value->table_name_starts_with."_polls")
+                    //     ->select('id', 'polls', DB::raw('SUM(votes + extra_votes) as votes'), DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+                        
+                    //     ->get();
                 }
     			$value->poll_tags = $pollTags;
 
