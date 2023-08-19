@@ -56,7 +56,7 @@ class PollController extends Controller
 
     public function checkIfHeadlineUsed(Request $request){
     	$headline = $request->input('headline');
-    	if (All_Tables::where('poll_title', $headline)->exists()) {
+    	if (All_Tables::where('poll_title', $headline)->where('winner_added', '<>', 'yes')->exists()) {
 		    return response()->json(['message' => 'headline exist']);
 		}
 		else{
