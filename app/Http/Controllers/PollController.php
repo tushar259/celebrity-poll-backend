@@ -803,11 +803,14 @@ class PollController extends Controller
             $totalVotesGiven = "";
             if(Schema::hasTable($table_name_starts_with."_polls")){
                 $returnData = DB::table($table_name_starts_with."_polls")
-                    ->orderBy("polls")
+                    ->select('id', 'polls', DB::raw('SUM(votes + extra_votes) as votes'))
+                    ->groupBy('id', 'polls')
+                    ->orderBy('polls')
                     ->get();
 
                 $totalVotesGiven = DB::table($table_name_starts_with.'_polls')
-                    ->sum('votes');
+                    ->sum(DB::raw('votes + extra_votes'));
+                    // ->sum('votes');
             }
             
             return response()->json([
@@ -845,10 +848,13 @@ class PollController extends Controller
 
             if(Schema::hasTable($table_name_starts_with."_polls")){
         		$returnData = DB::table($table_name_starts_with."_polls")
+                    ->select('id', 'polls', DB::raw('SUM(votes + extra_votes) as votes'))
+                    ->groupBy('id', 'polls')
                     ->orderBy("polls")
                     ->get();
         		$totalVotesGiven = DB::table($table_name_starts_with.'_polls')
-        		    ->sum('votes');
+        		    ->sum(DB::raw('votes + extra_votes'));
+                    // ->sum('votes');
             }
     		return response()->json([
     			'new_polls' => $returnData,
