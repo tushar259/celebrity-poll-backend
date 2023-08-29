@@ -876,7 +876,7 @@ class PollController extends Controller
         $allPolls = DB::table('all_tables')->select('which_industry','poll_title','table_name_starts_with','before_poll_description','starting_date','ending_date')
             ->where('ending_date','>',$currentDate)
             ->where('winner_added', 'no')
-            ->orderBy('ending_date', 'DESC')
+            ->orderBy('id', 'DESC')
             ->skip(0)
             ->take(20)
             ->get();
@@ -935,7 +935,7 @@ class PollController extends Controller
             ->where('ending_date','>',$currentDate)
             ->where('winner_added', 'no')
             ->where('which_industry', $industryName)
-            ->orderBy('ending_date', 'DESC')
+            ->orderBy('id', 'DESC')
             ->get();
 
         if($allPolls->count() > 0){
