@@ -798,7 +798,7 @@ class PollController extends Controller
 
     public function voteSelectedCandidate(Request $request){
         $table_name_starts_with = $request->input("table_name_starts_with");
-        if($this->checkIfUserVotedBefore($request) == "voted"){
+        /*if($this->checkIfUserVotedBefore($request) == "voted"){
             $returnData = "";
             $totalVotesGiven = "";
             if(Schema::hasTable($table_name_starts_with."_polls")){
@@ -819,7 +819,7 @@ class PollController extends Controller
                 'message' => 'You have already voted.',
                 'success' => true]);
         }
-        $email = $request->input("email");
+        $email = $request->input("email");*/ // vote using email
     	$selected_id = $request->input("selected_id");
     	
         $data = null;
@@ -829,7 +829,7 @@ class PollController extends Controller
         		->increment('votes');
         }
 
-        if($data){
+        /*if($data){
             if(Schema::hasTable($table_name_starts_with."_users_voted")){
                 DB::table($table_name_starts_with."_users_voted")->insert([
                     'email' => $email
@@ -838,7 +838,7 @@ class PollController extends Controller
             else{
                 // create a table named $table_name_starts_with."_users_voted"
             }
-        }
+        }*/ // vote using email
     	// $data->polls = $data->polls;
     	// $data->votes = $data->votes + 1;
 
