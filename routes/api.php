@@ -70,3 +70,5 @@ Route::get('/get-list-of-all-poll-history', 'App\Http\Controllers\PollController
 
 Route::post('/search-history-poll-by', 'App\Http\Controllers\PollController@searchHistoryPollBy');
 
+Route::get('/get-all-recent-uploaded-poll-for-admin', 'App\Http\Controllers\PollController@getAllRecentUploadedPollForAdmin');
+Route::post('/update-poll-for-admin', 'App\Http\Controllers\PollController@updatePollForAdmin');

@@ -1158,4 +1158,65 @@ class PollController extends Controller
             ]);
         }
     }
+
+
+    public function getAllRecentUploadedPollForAdmin(){
+
+        $currentDate = date('Y-m-d');
+        $allPolls = DB::table('all_tables')->select('which_industry','poll_title','table_name_starts_with','before_poll_description','starting_date','ending_date')
+            ->where('ending_date','>',$currentDate)
+            ->where('winner_added', 'no')
+            ->orderBy('id', 'DESC')
+            ->get();
+
+        if($allPolls->count() > 0){
+            foreach($allPolls as $value){
+                $pollTags = "";
+                if(Schema::hasTable($value->table_name_starts_with."_polls")){
+                    // $pollTags = DB::table($value->table_name_starts_with."_polls")
+                    //     ->select('id','polls','votes',DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+                    //     ->get();
+                    $pollTags = DB::table($value->table_name_starts_with."_polls")
+                        ->select('id', 'polls', DB::raw('SUM(votes + extra_votes) as votes'), DB::raw("'".$value->table_name_starts_with."' as table_name_starts_with"))
+                        ->groupBy('id', 'polls', 'table_name_starts_with')
+                        ->get();
+                }
+                $value->poll_tags = $pollTags;
+
+                
+            }
+            return response()->json([
+                'all_polls' => $allPolls,
+                'message' => 'Data received',
+                'success' => true]);
+        }
+        else if($allPolls->count() == 0){
+            return response()->json([
+                'message' => 'No polls uploaded yet',
+                'success' => false]);
+        }
+        else{
+            return response()->json([
+                'message' => 'Something went wrong',
+                'success' => false]);
+        }
+    }
+
+
+    public function updatePollForAdmin(Request $request){
+        // return $request;
+        $table_name_starts_with = $request->input("tableNameStartsWith");
+        
+        $selected_id = $request->input("starId");
+        
+        $data = null;
+        if(Schema::hasTable($table_name_starts_with."_polls")){
+            $data = DB::table($table_name_starts_with."_polls")
+                ->where("id", $selected_id)
+                ->increment('votes');
+        }
+
+        return response()->json(['success' => true]);
+        
+    }
 }
