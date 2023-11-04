@@ -72,3 +72,12 @@ Route::post('/search-history-poll-by', 'App\Http\Controllers\PollController@sear
 
 Route::get('/get-all-recent-uploaded-poll-for-admin', 'App\Http\Controllers\PollController@getAllRecentUploadedPollForAdmin');
 Route::post('/update-poll-for-admin', 'App\Http\Controllers\PollController@updatePollForAdmin');
+
+
+
+
+
+
+
+
+
