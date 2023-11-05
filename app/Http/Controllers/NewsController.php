@@ -81,4 +81,25 @@ class NewsController extends Controller
 
 	    return response()->json(['message' => 'News saved successfully'], 200);
     }
+
+    public function getCurrentNewsDescription(Request $request){
+    	// return $request;
+    	$newsid = $request->input('newsid');
+    	$news = NewsModel::select('id', 'headline', 'news_details', 'industry', 'created_at', 'thumbnail')
+    		->where('url', $newsid)
+    		->first();
+
+	    if (!$news) {
+	        return response()->json(['message' => 'News not found'], 404);
+	    }
+
+	    $extraNews = NewsModel::select('id', 'headline', 'thumbnail', 'url')
+	    	->where('industry', $news->industry)
+	    	->where('id', '<>', $news->id)
+	    	->orderBy('id', 'DESC')
+	    	->take(10)
+	    	->get();
+	    
+	    return response()->json(['mainNews' => $news, 'sideNews' => $extraNews], 200);
+    }
 }

@@ -83,5 +83,6 @@ Route::post('/update-poll-for-admin', 'App\Http\Controllers\PollController@updat
 // UPLOAD A NEWS
 
 Route::post('/update-a-poll-for-admin', 'App\Http\Controllers\NewsController@updateAPollForAdmin');
+Route::post('/get-current-news-description', 'App\Http\Controllers\NewsController@getCurrentNewsDescription');
 
 
