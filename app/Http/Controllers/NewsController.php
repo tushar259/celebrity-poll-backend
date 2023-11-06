@@ -14,7 +14,31 @@ use App\Models\NewsModel;
 
 class NewsController extends Controller
 {
-    public function updateAPollForAdmin(Request $request){
+	public function checkIfTableExist(){
+		if(Schema::hasTable('news_model')){
+			return "done";
+		}
+		else{
+			Schema::create('news_model', function (Blueprint $table) {
+	            $table->id();
+	            $table->text('headline')->unique();
+	            $table->text('url')->unique();
+	            $table->mediumText('news_details');
+	            $table->string('industry');
+	            $table->string('thumbnail')->nullable();
+	            $table->bigInteger('times_visited');
+	            $table->timestamps()->nullable();
+	        });
+	        return "done";
+		}
+	}
+
+    public function insertANewsForAdmin(Request $request){
+    	$checkTable = $this->checkIfTableExist();
+
+    	if($checkTable != "done"){
+    		return response()->json(['message' => 'Table creation error.']);
+    	}
     	// return $request;
     	$title = $request->input('title');
 	    $industry = $request->input('industry');
@@ -76,6 +100,7 @@ class NewsController extends Controller
 	    $news->industry = $industry;
 	    $news->news_details = $description;
 	    $news->thumbnail = 'newsImages/'.$fileName; // Store image file paths
+	    $news->times_visited = 0; 
 
 	    $news->save();
 
@@ -85,21 +110,28 @@ class NewsController extends Controller
     public function getCurrentNewsDescription(Request $request){
     	// return $request;
     	$newsid = $request->input('newsid');
-    	$news = NewsModel::select('id', 'headline', 'news_details', 'industry', 'created_at', 'thumbnail')
+    	$news = NewsModel::select('id', 'headline', 'news_details', 'industry', 'created_at', 'thumbnail', 'times_visited')
     		->where('url', $newsid)
     		->first();
 
 	    if (!$news) {
 	        return response()->json(['message' => 'News not found'], 404);
 	    }
+		$news->increment('times_visited');
 
-	    $extraNews = NewsModel::select('id', 'headline', 'thumbnail', 'url')
+	    $extraNews = $this->extraNewsOnNewsId($news);
+        				
+	    
+	    return response()->json(['mainNews' => $news, 'sideNews' => $extraNews]);
+    }
+
+    public function extraNewsOnNewsId($news){
+    	return NewsModel::select('id', 'headline', 'thumbnail', 'url')
 	    	->where('industry', $news->industry)
 	    	->where('id', '<>', $news->id)
 	    	->orderBy('id', 'DESC')
 	    	->take(10)
 	    	->get();
-	    
-	    return response()->json(['mainNews' => $news, 'sideNews' => $extraNews], 200);
     }
+
 }
