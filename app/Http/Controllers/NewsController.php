@@ -104,7 +104,7 @@ class NewsController extends Controller
 
 	    $news->save();
 
-	    return response()->json(['message' => 'News saved successfully'], 200);
+	    return response()->json(['success' => 'true', 'message' => 'News saved successfully'], 200);
     }
 
     public function getCurrentNewsDescription(Request $request){
@@ -119,19 +119,48 @@ class NewsController extends Controller
 	    }
 		$news->increment('times_visited');
 
-	    $extraNews = $this->extraNewsOnNewsId($news);
+	    $sideNews = $this->sideNewsOnNewsId($news);
+	    $bottomNews = $this->bottomNewsOnNewsId($news);
         				
 	    
-	    return response()->json(['mainNews' => $news, 'sideNews' => $extraNews]);
+	    return response()->json([
+	    	'mainNews' => $news, 
+	    	'sideNews' => $sideNews, 
+	    	'success' => 'true',
+	    	'bottomNews' => $bottomNews
+	    ]);
     }
 
-    public function extraNewsOnNewsId($news){
+    public function sideNewsOnNewsId($news){
     	return NewsModel::select('id', 'headline', 'thumbnail', 'url')
 	    	->where('industry', $news->industry)
 	    	->where('id', '<>', $news->id)
 	    	->orderBy('id', 'DESC')
 	    	->take(10)
 	    	->get();
+    }
+
+    public function bottomNewsOnNewsId($news){
+    	return NewsModel::select('id', 'headline', 'thumbnail', 'url')
+	    	->where('industry', 'other')
+	    	->where('id', '<>', $news->id)
+	    	->orderBy('id', 'DESC')
+	    	->take(3)
+	    	->get();
+    }
+
+    public function checkIfNewsTitleUsed(Request $request){
+    	$headline = $request->input('title');
+    	$url = $request->input('titleUrl');
+    	$checkTitlenUrl = NewsModel::where('headline', $headline)
+    						->orWhere('url', $url)
+    						->first();
+
+    	if(!$checkTitlenUrl){
+    		return response()->json(['success' => 'true', 'message' => 'Can be used.']);
+    	}
+
+    	return response()->json(['success' => 'false', 'message' => 'It is used already.']);
     }
 
 }
