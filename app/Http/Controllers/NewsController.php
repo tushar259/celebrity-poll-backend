@@ -163,4 +163,18 @@ class NewsController extends Controller
     	return response()->json(['success' => 'false', 'message' => 'It is used already.']);
     }
 
+    public function getAllCurrentNews(){
+    	$topLeftNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
+	    	->orderBy('id', 'DESC')
+	    	->take(10)
+	    	->get();
+
+    	return response()->json([
+    		'success' => 'true', 
+    		'message' => 'Results found.',
+    		'topLeftNews' => $topLeftNews
+    	]);
+
+    }
+
 }
