@@ -86,5 +86,6 @@ Route::post('/update-a-poll-for-admin', 'App\Http\Controllers\NewsController@ins
 Route::post('/get-current-news-description-details', 'App\Http\Controllers\NewsController@getCurrentNewsDescription');
 Route::post('/check-if-news-title-used', 'App\Http\Controllers\NewsController@checkIfNewsTitleUsed');
 Route::get('/get-all-current-news', 'App\Http\Controllers\NewsController@getAllCurrentNews');
+Route::post('/get-this-industry-news', 'App\Http\Controllers\NewsController@getThisIndustryNews');
 
 

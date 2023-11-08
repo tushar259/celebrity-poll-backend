@@ -169,11 +169,50 @@ class NewsController extends Controller
 	    	->take(10)
 	    	->get();
 
+	    $mostViewedNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
+	    	->where('created_at', '>=', now()->subMonths(2))
+	    	->orderBy('times_visited', 'DESC')
+	    	->take(10)
+	    	->get();
+
+	    $bollywoodNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
+	    	->where('industry', 'bollywood')
+	    	->orderBy('id', 'DESC')
+	    	->take(10)
+	    	->get();
+
     	return response()->json([
     		'success' => 'true', 
     		'message' => 'Results found.',
-    		'topLeftNews' => $topLeftNews
+    		'topLeftNews' => $topLeftNews,
+    		'mostViewedNews' => $mostViewedNews,
+    		'bollywoodNews' => $bollywoodNews
     	]);
+
+    }
+
+    public function getThisIndustryNews(Request $request){
+    	$industry = $request->input('industry');
+    	$industryNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
+	    	->where('industry', $industry)
+	    	->orderBy('id', 'DESC')
+	    	->take(10)
+	    	->get();
+
+	    if(count($industryNews) > 0){
+	    	return response()->json([
+	    		'success' => 'true', 
+	    		'message' => 'Results found.',
+	    		'industryNews' => $industryNews
+	    	]);
+	    }
+	    else{
+	    	return response()->json([
+	    		'success' => 'false', 
+	    		'message' => 'Results not found.'
+	    	]);
+	    }
+	    
 
     }
 
