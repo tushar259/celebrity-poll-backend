@@ -87,5 +87,6 @@ Route::post('/get-current-news-description-details', 'App\Http\Controllers\NewsC
 Route::post('/check-if-news-title-used', 'App\Http\Controllers\NewsController@checkIfNewsTitleUsed');
 Route::get('/get-all-current-news', 'App\Http\Controllers\NewsController@getAllCurrentNews');
 Route::post('/get-this-industry-news', 'App\Http\Controllers\NewsController@getThisIndustryNews');
+Route::post('/show-next-amount-top-news', 'App\Http\Controllers\NewsController@showNextAmountTopNews');
 
 

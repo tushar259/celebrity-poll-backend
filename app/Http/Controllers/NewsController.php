@@ -166,7 +166,7 @@ class NewsController extends Controller
     public function getAllCurrentNews(){
     	$topLeftNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
 	    	->orderBy('id', 'DESC')
-	    	->take(10)
+	    	->take(20)
 	    	->get();
 
 	    $mostViewedNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
@@ -213,6 +213,33 @@ class NewsController extends Controller
 	    	]);
 	    }
 	    
+
+    }
+
+    public function showNextAmountTopNews(Request $request){
+    	$showAmount = 20;
+    	$skipAmount = 20 * $request->input("showAmount");
+
+    	$currentNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
+	    	->orderBy('id', 'DESC')
+	    	->skip($skipAmount)
+	    	->take($showAmount)
+	    	->get();
+
+	    if(count($currentNews) > 0){
+	    	return response()->json([
+	    		'success' => 'true', 
+	    		'message' => 'Results found.',
+	    		'currentNews' => $currentNews
+	    	]);
+	    }
+	    else{
+	    	return response()->json([
+	    		'success' => 'false', 
+	    		'message' => 'Results not found.'
+	    	]);
+	    }
+
 
     }
 
