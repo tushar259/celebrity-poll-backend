@@ -142,7 +142,7 @@ class NewsController extends Controller
 
     public function bottomNewsOnNewsId($news){
     	return NewsModel::select('id', 'headline', 'thumbnail', 'url')
-	    	->where('industry', 'other')
+	    	->where('industry', 'others')
 	    	->where('id', '<>', $news->id)
 	    	->orderBy('id', 'DESC')
 	    	->take(3)
