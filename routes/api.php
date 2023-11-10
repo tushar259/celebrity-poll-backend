@@ -90,3 +90,13 @@ Route::post('/get-this-industry-news', 'App\Http\Controllers\NewsController@getT
 Route::post('/show-next-amount-top-news', 'App\Http\Controllers\NewsController@showNextAmountTopNews');
 
 
+
+
+
+
+
+// for Sitemap
+
+Route::get('/get-all-dynamic-sitemap', 'App\Http\Controllers\NewsController@getAllDynamicSitemap');
+
+

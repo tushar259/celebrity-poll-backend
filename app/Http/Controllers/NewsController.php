@@ -11,6 +11,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use App\Models\NewsModel;
+use App\Models\All_Tables;
 
 class NewsController extends Controller
 {
@@ -241,6 +242,35 @@ class NewsController extends Controller
 	    }
 
 
+    }
+
+    public function getAllDynamicSitemap(){
+
+    	$currentDate = date('Y-m-d');
+        $routesFromPollTables = All_Tables::select('poll_title')
+            ->where('ending_date','>',$currentDate)
+            ->where('winner_added', 'no')
+            ->get() ?? [];
+
+    	// $routesFromPollTables = All_Tables::select("poll_title")->get() ?? [];
+    	$routesFromNewsTables = NewsModel::select("url")->get() ?? [];
+    	$routesFromPollIndustry = DB::table("all_tables")
+            ->distinct()
+            ->select("which_industry")
+            ->get() ?? [];
+
+    	$routesFromPollWinning = All_Tables::select("poll_title")
+    		->where("ending_date", "<", $currentDate)
+    		->where("winner_added", "yes")
+    		->get() ?? [];
+
+    	return response()->json([
+    		'pollTables' => $routesFromPollTables,
+    		'newsTables' => $routesFromNewsTables,
+    		'pollIndustry' => $routesFromPollIndustry,
+    		'pollWinning' => $routesFromPollWinning
+    	]);
+    	// return $routesFromPollTables;
     }
 
 }
