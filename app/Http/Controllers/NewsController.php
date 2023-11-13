@@ -130,6 +130,7 @@ class NewsController extends Controller
 	    	'success' => 'true',
 	    	'bottomNews' => $bottomNews
 	    ]);
+	    // return $news;
     }
 
     public function sideNewsOnNewsId($news){
@@ -271,6 +272,57 @@ class NewsController extends Controller
     		'pollWinning' => $routesFromPollWinning
     	]);
     	// return $routesFromPollTables;
+    }
+
+    public function getAllDynamicSitemapNew(){
+
+    	$pollRoutes = [];
+    	$currentDate = date('Y-m-d');
+
+        $routesFromPollTables = All_Tables::select('poll_title')
+            ->where('ending_date','>',$currentDate)
+            ->where('winner_added', 'no')
+            ->get() ?? [];
+
+		foreach ($routesFromPollTables as $row) {
+		    $pollRoutes[] = ['url' => '/poll/' . $row->poll_title];
+		}
+
+    	// $routesFromPollTables = All_Tables::select("poll_title")->get() ?? [];
+    	$routesFromNewsTables = NewsModel::select("url")->get() ?? [];
+
+    	foreach ($routesFromNewsTables as $row) {
+		    $pollRoutes[] = ['url' => '/article/' . $row->url];
+		}
+
+    	$routesFromPollIndustry = DB::table("all_tables")
+            ->distinct()
+            ->select("which_industry")
+            ->get() ?? [];
+
+        foreach ($routesFromPollIndustry as $row) {
+		    $pollRoutes[] = ['url' => '/industry/' . $row->which_industry];
+		}
+
+    	$routesFromPollWinning = All_Tables::select("poll_title")
+    		->where("ending_date", "<", $currentDate)
+    		->where("winner_added", "yes")
+    		->get() ?? [];
+
+    	foreach ($routesFromPollWinning as $row) {
+		    $pollRoutes[] = ['url' => '/poll-winner/' . $row->poll_title];
+		}
+
+    	// return response()->json([
+    	// 	'pollTables' => $routesFromPollTables,
+    	// 	'newsTables' => $routesFromNewsTables,
+    	// 	'pollIndustry' => $routesFromPollIndustry,
+    	// 	'pollWinning' => $routesFromPollWinning
+    	// ]);
+    	return $pollRoutes;
+    	// return response()->json([
+    	// 	'all_url' => $pollRoutes
+    	// ]);
     }
 
 }

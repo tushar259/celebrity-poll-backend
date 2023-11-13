@@ -79,8 +79,8 @@ Route::post('/update-poll-for-admin', 'App\Http\Controllers\PollController@updat
 
 
 
+// UPLOADED
 
-// UPLOAD A NEWS
 
 Route::post('/update-a-poll-for-admin', 'App\Http\Controllers\NewsController@insertANewsForAdmin');
 Route::post('/get-current-news-description-details', 'App\Http\Controllers\NewsController@getCurrentNewsDescription');
@@ -89,14 +89,10 @@ Route::get('/get-all-current-news', 'App\Http\Controllers\NewsController@getAllC
 Route::post('/get-this-industry-news', 'App\Http\Controllers\NewsController@getThisIndustryNews');
 Route::post('/show-next-amount-top-news', 'App\Http\Controllers\NewsController@showNextAmountTopNews');
 
-
-
-
-
-
-
 // for Sitemap
 
 Route::get('/get-all-dynamic-sitemap', 'App\Http\Controllers\NewsController@getAllDynamicSitemap');
 
+Route::get('/get-all-dynamic-sitemap-new', 'App\Http\Controllers\NewsController@getAllDynamicSitemapNew');
 
+// UPLOADED
