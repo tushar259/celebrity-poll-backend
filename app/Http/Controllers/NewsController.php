@@ -95,15 +95,21 @@ class NewsController extends Controller
 	    // Store the data in the SQL database
 	    // You can create a new model and use Eloquent to insert the data
 	    // For example:
+	    $indiaTime = Carbon::now('Asia/Kolkata');
+    	$formattedTime = $indiaTime->format('Y-m-d H:i:s');
+
 	    $news = new NewsModel();
 	    $news->headline = $title;
 	    $news->url = $titleUrl;
 	    $news->industry = $industry;
 	    $news->news_details = $description;
 	    $news->thumbnail = 'newsImages/'.$fileName; // Store image file paths
-	    $news->times_visited = 0; 
-
+	    $news->times_visited = 0;
+	    $news->created_at = $formattedTime;
+	    $news->updated_at = $formattedTime;
 	    $news->save();
+
+	    
 
 	    return response()->json(['success' => 'true', 'message' => 'News saved successfully'], 200);
     }
@@ -166,6 +172,7 @@ class NewsController extends Controller
     }
 
     public function getAllCurrentNews(){
+    	// ->selectRaw('TIMESTAMPDIFF(SECOND, created_at, NOW()) as created_at_diff')
     	$topLeftNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
 	    	->orderBy('id', 'DESC')
 	    	->take(20)
