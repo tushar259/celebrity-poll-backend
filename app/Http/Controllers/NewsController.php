@@ -122,9 +122,36 @@ class NewsController extends Controller
     		->first();
 
 	    if (!$news) {
-	        return response()->json(['message' => 'News not found'], 404);
+	    	$news = [
+			    'id' => "",
+			    'headline' => "",
+			    'news_details' => "",
+			    'industry' => "",
+			    'created_at' => "",
+			    'thumbnail' => "",
+			    'times_visited' => "",
+			];
+			$sideNews = [
+				'id' => "",
+			    'headline' => "",
+			    'thumbnail' => "",
+			    'url' => "",
+			];
+			$bottomNews = [
+				'id' => "",
+			    'headline' => "",
+			    'thumbnail' => "",
+			    'url' => "",
+			];
+	        return response()->json([
+	        	'mainNews' => $news,
+	        	'message' => 'News not found',
+	        	'success' => 'false',
+	        	'bottomNews' => $bottomNews,
+	        	'sideNews' => $sideNews,
+	        ]);
 	    }
-		$news->increment('times_visited');
+		//$news->increment('times_visited');
 
 	    $sideNews = $this->sideNewsOnNewsId($news);
 	    $bottomNews = $this->bottomNewsOnNewsId($news);
@@ -137,6 +164,18 @@ class NewsController extends Controller
 	    	'bottomNews' => $bottomNews
 	    ]);
 	    // return $news;
+    }
+
+    public function increaseNewsPageVisitCount(Request $request){
+    	$newsid = $request->input('newsid');
+    	$news = NewsModel::select('id', 'times_visited')
+    		->where('url', $newsid)
+    		->first();
+    	$news->increment('times_visited');
+
+    	return response()->json([ 
+	    	'success' => 'true'
+	    ]);
     }
 
     public function sideNewsOnNewsId($news){

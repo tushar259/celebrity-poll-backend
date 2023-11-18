@@ -94,5 +94,6 @@ Route::post('/show-next-amount-top-news', 'App\Http\Controllers\NewsController@s
 Route::get('/get-all-dynamic-sitemap', 'App\Http\Controllers\NewsController@getAllDynamicSitemap');
 
 Route::get('/get-all-dynamic-sitemap-new', 'App\Http\Controllers\NewsController@getAllDynamicSitemapNew');
+Route::post('/increase-news-page-visit-count', 'App\Http\Controllers\NewsController@increaseNewsPageVisitCount');
 
 // UPLOADED
