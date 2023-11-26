@@ -96,4 +96,7 @@ Route::get('/get-all-dynamic-sitemap', 'App\Http\Controllers\NewsController@getA
 Route::get('/get-all-dynamic-sitemap-new', 'App\Http\Controllers\NewsController@getAllDynamicSitemapNew');
 Route::post('/increase-news-page-visit-count', 'App\Http\Controllers\NewsController@increaseNewsPageVisitCount');
 
-// UPLOADED
+Route::get('/get-all-news-to-update-for-admin', 'App\Http\Controllers\NewsController@getAllNewsToUpdateForAdmin');
+Route::post('/update-an-old-news-for-admin', 'App\Http\Controllers\NewsController@updateAnOldNewsForAdmin');
+
+

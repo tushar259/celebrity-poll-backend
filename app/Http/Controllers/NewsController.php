@@ -371,4 +371,41 @@ class NewsController extends Controller
     	// ]);
     }
 
+    public function getAllNewsToUpdateForAdmin(){
+    	$data = NewsModel::select("id", "headline", "url", "news_details", "industry")
+          		->orderBy("id", "DESC")
+          		->get();
+      	return response()->json([
+    		'news' => $data
+    	]);
+    }
+  
+  	public function updateAnOldNewsForAdmin(Request $request){
+    	$newsId = $request->input('newsId');
+      	$title = $request->input('title');
+	    $industry = $request->input('industry');
+	    $description = $request->input('description');
+	    $titleUrl = $request->input('titleUrl');
+      
+      	$data = NewsModel::where("id", $newsId)->first();
+      
+      	$data->headline = $title;
+	    $data->url = $titleUrl;
+	    $data->industry = $industry;
+	    $data->news_details = $description;
+      
+      	if($data->save()){
+        	return response()->json([
+                'success' => 'true'
+            ]);
+        }
+      	else{
+        	return response()->json([
+                'success' => 'false'
+            ]);
+        }
+          		
+    }
+    
+
 }
