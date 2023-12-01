@@ -24,6 +24,7 @@ class NewsController extends Controller
 	            $table->id();
 	            $table->text('headline')->unique();
 	            $table->text('url')->unique();
+	            $table->text('summary')->nullable();
 	            $table->mediumText('news_details');
 	            $table->string('industry');
 	            $table->string('thumbnail')->nullable();
@@ -117,7 +118,7 @@ class NewsController extends Controller
     public function getCurrentNewsDescription(Request $request){
     	// return $request;
     	$newsid = $request->input('newsid');
-    	$news = NewsModel::select('id', 'headline', 'news_details', 'industry', 'created_at', 'thumbnail', 'times_visited')
+    	$news = NewsModel::select('id', 'headline', 'summary', 'news_details', 'industry', 'created_at', 'thumbnail', 'times_visited')
     		->where('url', $newsid)
     		->first();
 
