@@ -24,7 +24,7 @@ class NewsController extends Controller
 	            $table->id();
 	            $table->text('headline')->unique();
 	            $table->text('url')->unique();
-	            $table->text('summary')->nullable();
+              	$table->text('summary')->nullable();
 	            $table->mediumText('news_details');
 	            $table->string('industry');
 	            $table->string('thumbnail')->nullable();
@@ -46,7 +46,8 @@ class NewsController extends Controller
 	    $industry = $request->input('industry');
 	    $description = $request->input('description');
 	    $titleUrl = $request->input('titleUrl');
-
+		$summary = $request->input('summary');
+      
 	    // Handle image uploads
 	    // $images = [];
 	    // foreach ($request->allFiles() as $key => $file) {
@@ -96,21 +97,21 @@ class NewsController extends Controller
 	    // Store the data in the SQL database
 	    // You can create a new model and use Eloquent to insert the data
 	    // For example:
-	    $indiaTime = Carbon::now('Asia/Kolkata');
+        $indiaTime = Carbon::now('Asia/Kolkata');
     	$formattedTime = $indiaTime->format('Y-m-d H:i:s');
-
+      
 	    $news = new NewsModel();
 	    $news->headline = $title;
 	    $news->url = $titleUrl;
 	    $news->industry = $industry;
+      	$news->summary = $summary;
 	    $news->news_details = $description;
 	    $news->thumbnail = 'newsImages/'.$fileName; // Store image file paths
 	    $news->times_visited = 0;
-	    $news->created_at = $formattedTime;
+        $news->created_at = $formattedTime;
 	    $news->updated_at = $formattedTime;
-	    $news->save();
 
-	    
+	    $news->save();
 
 	    return response()->json(['success' => 'true', 'message' => 'News saved successfully'], 200);
     }
@@ -123,12 +124,13 @@ class NewsController extends Controller
     		->first();
 
 	    if (!$news) {
-	    	$news = [
+	        //return response()->json(['message' => 'News not found'], 404);
+          	$news = [
 			    'id' => "",
 			    'headline' => "",
 			    'news_details' => "",
 			    'industry' => "",
-			    'created_at' => "",
+			    'created_at' => "not found",
 			    'thumbnail' => "",
 			    'times_visited' => "",
 			];
@@ -164,16 +166,15 @@ class NewsController extends Controller
 	    	'success' => 'true',
 	    	'bottomNews' => $bottomNews
 	    ]);
-	    // return $news;
     }
-
-    public function increaseNewsPageVisitCount(Request $request){
+  
+  	public function increaseNewsPageVisitCount(Request $request){
     	$newsid = $request->input('newsid');
     	$news = NewsModel::select('id', 'times_visited')
     		->where('url', $newsid)
     		->first();
     	$news->increment('times_visited');
-
+    	
     	return response()->json([ 
 	    	'success' => 'true'
 	    ]);
@@ -184,7 +185,7 @@ class NewsController extends Controller
 	    	->where('industry', $news->industry)
 	    	->where('id', '<>', $news->id)
 	    	->orderBy('id', 'DESC')
-	    	->take(10)
+	    	->take(4)
 	    	->get();
     }
 
@@ -193,7 +194,7 @@ class NewsController extends Controller
 	    	->where('industry', 'others')
 	    	->where('id', '<>', $news->id)
 	    	->orderBy('id', 'DESC')
-	    	->take(3)
+	    	->take(9)
 	    	->get();
     }
 
@@ -212,7 +213,6 @@ class NewsController extends Controller
     }
 
     public function getAllCurrentNews(){
-    	// ->selectRaw('TIMESTAMPDIFF(SECOND, created_at, NOW()) as created_at_diff')
     	$topLeftNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
 	    	->orderBy('id', 'DESC')
 	    	->take(20)
@@ -221,13 +221,13 @@ class NewsController extends Controller
 	    $mostViewedNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
 	    	->where('created_at', '>=', now()->subMonths(2))
 	    	->orderBy('times_visited', 'DESC')
-	    	->take(10)
+	    	->take(6)
 	    	->get();
 
 	    $bollywoodNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
 	    	->where('industry', 'bollywood')
 	    	->orderBy('id', 'DESC')
-	    	->take(10)
+	    	->take(20)
 	    	->get();
 
     	return response()->json([
@@ -320,8 +320,8 @@ class NewsController extends Controller
     	]);
     	// return $routesFromPollTables;
     }
-
-    public function getAllDynamicSitemapNew(){
+  
+  	public function getAllDynamicSitemapNew(){
 
     	$pollRoutes = [];
     	$currentDate = date('Y-m-d');
@@ -371,9 +371,9 @@ class NewsController extends Controller
     	// 	'all_url' => $pollRoutes
     	// ]);
     }
-
-    public function getAllNewsToUpdateForAdmin(){
-    	$data = NewsModel::select("id", "headline", "url", "news_details", "industry")
+  
+  	public function getAllNewsToUpdateForAdmin(){
+    	$data = NewsModel::select("id", "headline", "url", "summary", "news_details", "industry")
           		->orderBy("id", "DESC")
           		->get();
       	return response()->json([
@@ -387,12 +387,14 @@ class NewsController extends Controller
 	    $industry = $request->input('industry');
 	    $description = $request->input('description');
 	    $titleUrl = $request->input('titleUrl');
+      	$summary = $request->input('summary');
       
       	$data = NewsModel::where("id", $newsId)->first();
       
       	$data->headline = $title;
 	    $data->url = $titleUrl;
 	    $data->industry = $industry;
+      	$data->summary = $summary;
 	    $data->news_details = $description;
       
       	if($data->save()){
@@ -407,6 +409,5 @@ class NewsController extends Controller
         }
           		
     }
-    
 
 }
