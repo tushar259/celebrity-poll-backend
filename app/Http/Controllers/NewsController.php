@@ -63,7 +63,14 @@ class NewsController extends Controller
 	    $fileName = "";
 	    // return $images;
 	    // Create a folder to store images, if it doesn't exist
-	    $folderPath = public_path('newsImages');
+
+	    $indiaTime = Carbon::now('Asia/Kolkata');
+    	$formattedTime = $indiaTime->format('Y-m-d H:i:s');
+
+    	$newsImageFolder = $indiaTime->format('my');
+
+
+	    $folderPath = public_path('newsImages/'.$newsImageFolder);
 	    if (!file_exists($folderPath)) {
 	        mkdir($folderPath, 0777, true);
 	    }
@@ -97,8 +104,9 @@ class NewsController extends Controller
 	    // Store the data in the SQL database
 	    // You can create a new model and use Eloquent to insert the data
 	    // For example:
-        $indiaTime = Carbon::now('Asia/Kolkata');
-    	$formattedTime = $indiaTime->format('Y-m-d H:i:s');
+        
+
+    	$description = $this->updateQuillTextForAdmin($description, $title, $newsImageFolder);
       
 	    $news = new NewsModel();
 	    $news->headline = $title;
@@ -106,7 +114,7 @@ class NewsController extends Controller
 	    $news->industry = $industry;
       	$news->summary = $summary;
 	    $news->news_details = $description;
-	    $news->thumbnail = 'newsImages/'.$fileName; // Store image file paths
+	    $news->thumbnail = 'newsImages/'.$newsImageFolder.'/'.$fileName; // Store image file paths
 	    $news->times_visited = 0;
         $news->created_at = $formattedTime;
 	    $news->updated_at = $formattedTime;
@@ -194,7 +202,7 @@ class NewsController extends Controller
 	    	->where('industry', 'others')
 	    	->where('id', '<>', $news->id)
 	    	->orderBy('id', 'DESC')
-	    	->take(9)
+	    	->take(3)
 	    	->get();
     }
 
@@ -215,7 +223,7 @@ class NewsController extends Controller
     public function getAllCurrentNews(){
     	$topLeftNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
 	    	->orderBy('id', 'DESC')
-	    	->take(20)
+	    	->take(21)
 	    	->get();
 
 	    $mostViewedNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
@@ -267,7 +275,13 @@ class NewsController extends Controller
 
     public function showNextAmountTopNews(Request $request){
     	$showAmount = 20;
-    	$skipAmount = 20 * $request->input("showAmount");
+      	$skipAmount = 21;  
+      
+        $showHowManyNextNews = $request->input("showAmount");
+      	if($showHowManyNextNews > 1){
+        	$skipAmount = 20 * $showHowManyNextNews;
+        }
+    	
 
     	$currentNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
 	    	->orderBy('id', 'DESC')
@@ -373,7 +387,7 @@ class NewsController extends Controller
     }
   
   	public function getAllNewsToUpdateForAdmin(){
-    	$data = NewsModel::select("id", "headline", "url", "summary", "news_details", "industry")
+    	$data = NewsModel::select("id", "headline", "url", "summary", "news_details", "industry", "thumbnail")
           		->orderBy("id", "DESC")
           		->get();
       	return response()->json([
@@ -388,6 +402,17 @@ class NewsController extends Controller
 	    $description = $request->input('description');
 	    $titleUrl = $request->input('titleUrl');
       	$summary = $request->input('summary');
+
+
+      	$indiaTime = Carbon::now('Asia/Kolkata');
+    	$newsImageFolder = $indiaTime->format('my');
+
+	    $folderPath = public_path('newsImages/'.$newsImageFolder);
+	    if (!file_exists($folderPath)) {
+	        mkdir($folderPath, 0777, true);
+	    }
+
+	    $description = $this->updateQuillTextForAdmin($description, $title, $newsImageFolder);
       
       	$data = NewsModel::where("id", $newsId)->first();
       
@@ -409,5 +434,63 @@ class NewsController extends Controller
         }
           		
     }
+
+
+    public function updateQuillTextForAdmin($description, $title, $newsImageFolder){
+	    // ... (previous code)
+
+	    $quillText = $description;
+
+	    // Extract image sources using regular expression
+	    // preg_match_all('/<img.*?src="(.*?)"/', $quillText, $matches);
+	    preg_match_all('/<img.*?src="((?!https:\/\/).+?)".*?>/', $quillText, $matches);
+
+	    $uploadedPaths = [];
+
+	    foreach ($matches[1] as $imageSource) {
+	        // Set a default alt text (you can customize this)
+	        $alt = $title;
+	        $alt = str_replace(['"', "'"], '', $alt);
+	        // Upload each image to the public path (you can customize the path)
+	        $uploadedPath = $this->uploadQuillImage($imageSource, $alt, $newsImageFolder);
+	        
+	        // Replace the image source in the Quill text
+	        $quillText = str_replace($imageSource, $uploadedPath, $quillText);
+
+	        // Save the uploaded paths for later use
+	        $uploadedPaths[] = $uploadedPath;
+	    }
+
+	    // Now $quillText contains updated image paths
+
+	    // ... (previous code)
+
+	    return $quillText;
+	}
+
+	public function uploadQuillImage($imageSource, $alt, $newsImageFolder){
+	    // Get the base64-encoded image data
+	    $base64Image = explode(',', $imageSource)[1];
+
+	    // Decode the base64 data
+	    $decodedImage = base64_decode($base64Image);
+
+	    // Generate a unique filename
+	    $folderPath = public_path('newsImages/'.$newsImageFolder);
+	    if (!file_exists($folderPath)) {
+	        mkdir($folderPath, 0777, true);
+	    }
+
+	    $filename = 'image_' . uniqid() . '.webp';
+
+	    // Specify the path where you want to save the image
+	    $path = $folderPath. '/' . $filename;
+
+	    // Save the image
+	    file_put_contents($path, $decodedImage);
+
+	    // Return the uploaded path with alt attribute
+	    return 'http://localhost:8000/newsImages/'.$newsImageFolder.'/' . $filename . '" alt="'. $alt;
+	}
 
 }
