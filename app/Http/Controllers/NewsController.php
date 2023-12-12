@@ -221,22 +221,50 @@ class NewsController extends Controller
     }
 
     public function getAllCurrentNews(){
-    	$topLeftNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
-	    	->orderBy('id', 'DESC')
-	    	->take(21)
-	    	->get();
+    	// $topLeftNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
+	    // 	->orderBy('id', 'DESC')
+	    // 	->take(21)
+	    // 	->get();
 
-	    $mostViewedNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
-	    	->where('created_at', '>=', now()->subMonths(2))
-	    	->orderBy('times_visited', 'DESC')
-	    	->take(6)
-	    	->get();
+	    // $mostViewedNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
+	    // 	->where('created_at', '>=', now()->subMonths(2))
+	    // 	->orderBy('times_visited', 'DESC')
+	    // 	->take(6)
+	    // 	->get();
 
-	    $bollywoodNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
-	    	->where('industry', 'bollywood')
-	    	->orderBy('id', 'DESC')
-	    	->take(20)
-	    	->get();
+	    // $bollywoodNews = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'created_at')
+	    // 	->where('industry', 'bollywood')
+	    // 	->orderBy('id', 'DESC')
+	    // 	->take(20)
+	    // 	->get();
+
+	    /*$rawQuery = "SELECT id, headline, thumbnail, url, created_at FROM news_model 
+             ORDER BY id DESC 
+             LIMIT 21";
+
+        $topLeftNews = DB::select($rawQuery);
+        
+        $rawQuery = "SELECT id, headline, thumbnail, url, created_at FROM news_model 
+             ORDER BY times_visited DESC 
+             LIMIT 6";
+
+        $mostViewedNews = DB::select($rawQuery);
+        
+        $rawQuery = "SELECT id, headline, thumbnail, url, created_at FROM news_model 
+             WHERE industry = 'bollywood'
+             LIMIT 20";
+
+        $bollywoodNews = DB::select($rawQuery);*/
+
+
+        $news = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'industry', 'times_visited', 'created_at')
+            ->latest()
+            ->limit(50) // (21 + 6 + 20) to cover all sections
+            ->get();
+
+        $topLeftNews = $news->take(21);
+        $mostViewedNews = $news->sortByDesc('times_visited')->values()->take(6);
+        $bollywoodNews = $news->where('industry', 'Bollywood')->take(20);
 
     	return response()->json([
     		'success' => 'true', 
