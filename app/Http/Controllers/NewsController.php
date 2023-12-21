@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
@@ -257,7 +258,7 @@ class NewsController extends Controller
         $bollywoodNews = DB::select($rawQuery);*/
 
 
-        $news = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'industry', 'times_visited', 'created_at')
+        /*$news = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'industry', 'times_visited', 'created_at')
             ->latest()
             ->limit(50) // (21 + 6 + 20) to cover all sections
             ->get();
@@ -272,6 +273,26 @@ class NewsController extends Controller
     		'topLeftNews' => $topLeftNews,
     		'mostViewedNews' => $mostViewedNews,
     		'bollywoodNews' => $bollywoodNews
+    	]);*/
+
+    	// $news = NewsModel::select('id', 'headline', 'thumbnail', 'url', 'industry', 'times_visited', 'created_at')
+     //        ->latest()
+     //        ->limit(50)
+     //        ->get();
+
+        $rawQuery = "SELECT id, headline, thumbnail, url, industry, times_visited, created_at FROM news_model 
+             ORDER BY id DESC 
+             LIMIT 50";
+
+        $news = collect(DB::select($rawQuery));
+
+        $topLeftNews = $news->take(21);
+
+    	return response()->json([
+    		'success' => 'true', 
+    		'message' => 'Results found.',
+    		'allNews' => $news,
+    		'topLeftNews' => $topLeftNews
     	]);
 
     }
@@ -417,6 +438,7 @@ class NewsController extends Controller
   	public function getAllNewsToUpdateForAdmin(){
     	$data = NewsModel::select("id", "headline", "url", "summary", "news_details", "industry", "thumbnail")
           		->orderBy("id", "DESC")
+          		->take(30)
           		->get();
       	return response()->json([
     		'news' => $data
