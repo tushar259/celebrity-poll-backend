@@ -128,11 +128,16 @@ class NewsController extends Controller
     public function getCurrentNewsDescription(Request $request){
     	// return $request;
     	$newsid = $request->input('newsid');
-    	$news = NewsModel::select('id', 'headline', 'summary', 'news_details', 'industry', 'created_at', 'thumbnail', 'times_visited')
-    		->where('url', $newsid)
-    		->first();
+    	// $news = NewsModel::select('id', 'headline', 'summary', 'news_details', 'industry', 'created_at', 'thumbnail', 'times_visited')
+    	// 	->where('url', $newsid)
+    	// 	->first();
 
-	    if (!$news) {
+    	$news = DB::select("SELECT id, headline, summary, news_details, industry, created_at, thumbnail, times_visited
+                    FROM news_model
+                    WHERE url = ?
+                    LIMIT 1", [$newsid]);
+
+	    if (empty($news)) {
 	        //return response()->json(['message' => 'News not found'], 404);
           	$news = [
 			    'id' => "",
@@ -143,65 +148,59 @@ class NewsController extends Controller
 			    'thumbnail' => "",
 			    'times_visited' => "",
 			];
-			$sideNews = [
-				'id' => "",
-			    'headline' => "",
-			    'thumbnail' => "",
-			    'url' => "",
-			];
-			$bottomNews = [
-				'id' => "",
-			    'headline' => "",
-			    'thumbnail' => "",
-			    'url' => "",
-			];
+			
 	        return response()->json([
 	        	'mainNews' => $news,
 	        	'message' => 'News not found',
 	        	'success' => 'false',
-	        	'bottomNews' => $bottomNews,
-	        	'sideNews' => $sideNews,
 	        ]);
 	    }
 		//$news->increment('times_visited');
 
-	    $sideNews = $this->sideNewsOnNewsId($news);
-	    $bottomNews = $this->bottomNewsOnNewsId($news);
+	    // $sideNews = $this->sideNewsOnNewsId($news);
+	    // $bottomNews = $this->bottomNewsOnNewsId($news);
         				
 	    
 	    return response()->json([
 	    	'mainNews' => $news, 
-	    	'sideNews' => $sideNews, 
+	    	// 'sideNews' => $sideNews, 
 	    	'success' => 'true',
-	    	'bottomNews' => $bottomNews
+	    	// 'bottomNews' => $bottomNews
 	    ]);
     }
   
   	public function increaseNewsPageVisitCount(Request $request){
     	$newsid = $request->input('newsid');
+    	$industry = $request->input('industry');
+    	$maineNewsId = $request->input('mainNewsId');
     	$news = NewsModel::select('id', 'times_visited')
     		->where('url', $newsid)
     		->first();
     	$news->increment('times_visited');
+
+    	$sideNews = $this->sideNewsOnNewsId($industry, $maineNewsId);
+	    $bottomNews = $this->bottomNewsOnNewsId($industry, $maineNewsId);
     	
     	return response()->json([ 
-	    	'success' => 'true'
+	    	'success' => 'true',
+	    	'sideNews' => $sideNews,
+	    	'bottomNews' => $bottomNews
 	    ]);
     }
 
-    public function sideNewsOnNewsId($news){
+    public function sideNewsOnNewsId($industry, $maineNewsId){
     	return NewsModel::select('id', 'headline', 'thumbnail', 'url')
-	    	->where('industry', $news->industry)
-	    	->where('id', '<>', $news->id)
+	    	->where('industry', $industry)
+	    	->where('id', '<>', $maineNewsId)
 	    	->orderBy('id', 'DESC')
 	    	->take(4)
 	    	->get();
     }
 
-    public function bottomNewsOnNewsId($news){
+    public function bottomNewsOnNewsId($industry, $maineNewsId){
     	return NewsModel::select('id', 'headline', 'thumbnail', 'url')
 	    	->where('industry', 'others')
-	    	->where('id', '<>', $news->id)
+	    	->where('id', '<>', $maineNewsId)
 	    	->orderBy('id', 'DESC')
 	    	->take(3)
 	    	->get();
