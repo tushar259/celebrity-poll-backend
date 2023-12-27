@@ -100,3 +100,10 @@ Route::get('/get-all-news-to-update-for-admin', 'App\Http\Controllers\NewsContro
 Route::post('/update-an-old-news-for-admin', 'App\Http\Controllers\NewsController@updateAnOldNewsForAdmin');
 
 
+
+
+
+
+Route::get('/get-all-side-news-at-home', 'App\Http\Controllers\NewsController@getAllSideNewsAtHome');
+
+
